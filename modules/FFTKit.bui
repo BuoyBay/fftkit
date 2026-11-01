@@ -1,0 +1,139 @@
+''' Separate real/imaginary transform outputs, owned by the caller.
+Public Class FFTResult
+    Public Property Real As Array Of Double
+    Public Property Imaginary As Array Of Double
+End Class
+
+''' Return whether length is a supported radix-2 transform size.
+Public Function IsFFTSize(length As Integer) As Boolean
+    If length < 1 Or length > 1048576 Then Return False
+    While length > 1
+        If length Mod 2 <> 0 Then Return False
+        length = length \ 2
+    End While
+    Return True
+End Function
+
+Private Sub ValidateFFTLength(length As Integer)
+    If Not IsFFTSize(length) Then Throw New InvalidArgumentException("FFT length must be a power of two in 1..1048576")
+End Sub
+
+''' Forward uses exp(-2*pi*i*k*n/N); inverse uses positive sign and divides by N.
+''' Inputs are copied and never modified, even if both arguments alias.
+Public Function TransformFFT(real As Array Of Double, imaginary As Array Of Double, inverse As Boolean = False) As FFTResult
+    Dim count As Integer = Array.Count(real)
+    ValidateFFTLength(count)
+    If Array.Count(imaginary) <> count Then Throw New InvalidArgumentException("FFT real and imaginary lengths must match")
+    Dim outputData As New FFTResult()
+    outputData.Real = Array.Clone(real)
+    outputData.Imaginary = Array.Clone(imaginary)
+    Dim reversed As Integer = 0
+    For i As Integer = 1 To count - 1
+        Dim bit As Integer = count \ 2
+        While reversed >= bit And bit > 0
+            reversed -= bit
+            bit = bit \ 2
+        End While
+        reversed += bit
+        If i < reversed Then
+            Dim saved As Double = outputData.Real(i)
+            outputData.Real(i) = outputData.Real(reversed)
+            outputData.Real(reversed) = saved
+            saved = outputData.Imaginary(i)
+            outputData.Imaginary(i) = outputData.Imaginary(reversed)
+            outputData.Imaginary(reversed) = saved
+        End If
+    Next
+    Dim width As Integer = 2
+    While width <= count
+        Dim angle As Double = -2.0 * Math.Pi / width
+        If inverse Then angle = -angle
+        Dim half As Integer = width \ 2
+        For offset As Integer = 0 To half - 1
+            Dim twiddleReal As Double = Math.Cos(angle * offset)
+            Dim twiddleImaginary As Double = Math.Sin(angle * offset)
+            For start As Integer = offset To count - 1 Step width
+                Dim other As Integer = start + half
+                Dim productReal As Double = twiddleReal * outputData.Real(other) - twiddleImaginary * outputData.Imaginary(other)
+                Dim productImaginary As Double = twiddleReal * outputData.Imaginary(other) + twiddleImaginary * outputData.Real(other)
+                Dim evenReal As Double = outputData.Real(start)
+                Dim evenImaginary As Double = outputData.Imaginary(start)
+                outputData.Real(start) = evenReal + productReal
+                outputData.Imaginary(start) = evenImaginary + productImaginary
+                outputData.Real(other) = evenReal - productReal
+                outputData.Imaginary(other) = evenImaginary - productImaginary
+            Next
+        Next
+        width *= 2
+    End While
+    If inverse Then
+        For i As Integer = 0 To count - 1
+            outputData.Real(i) = outputData.Real(i) / (count * 1.0)
+            outputData.Imaginary(i) = outputData.Imaginary(i) / (count * 1.0)
+        Next
+    End If
+    Return outputData
+End Function
+
+''' Real-input transform returns the complete N-bin complex spectrum.
+Public Function ForwardFFT(samples As Array Of Double) As FFTResult
+    ValidateFFTLength(Array.Count(samples))
+    Dim imaginary() As Double
+    Array.ResizeTo(imaginary, Array.Count(samples))
+    Return TransformFFT(samples, imaginary, False)
+End Function
+
+''' Fresh zero-padded copy; truncation is rejected. Does not imply a valid FFT size.
+Public Function ZeroPadFFT(samples As Array Of Double, length As Integer) As Array Of Double
+    If length < Array.Count(samples) Or length < 1 Or length > 1048576 Then Throw New InvalidArgumentException("Zero pad length must fit input and lie in 1..1048576")
+    Dim outputData As Array Of Double = Array.AsResizable(samples)
+    Array.ResizeTo(outputData, length)
+    Return outputData
+End Function
+
+Private Function FFTWindowCoefficients(length As Integer, kind As Integer) As Array Of Double
+    If length < 1 Or length > 1048576 Then Throw New InvalidArgumentException("Window length must lie in 1..1048576")
+    Dim outputData() As Double
+    For i As Integer = 0 To length - 1
+        Dim coefficient As Double = 1.0
+        If length > 1 Then
+            Dim angle As Double = 2.0 * Math.Pi * i / ((length - 1) * 1.0)
+            If kind = 1 Then
+                coefficient = 0.5 - 0.5 * Math.Cos(angle)
+            ElseIf kind = 2 Then
+                coefficient = 0.54 - 0.46 * Math.Cos(angle)
+            ElseIf kind = 3 Then
+                coefficient = 0.42 - 0.5 * Math.Cos(angle) + 0.08 * Math.Cos(2.0 * angle)
+            End If
+        End If
+        Array.Append(outputData, coefficient)
+    Next
+    Return outputData
+End Function
+
+Public Function RectangularWindow(length As Integer) As Array Of Double
+    Return FFTWindowCoefficients(length, 0)
+End Function
+
+Public Function HannWindow(length As Integer) As Array Of Double
+    Return FFTWindowCoefficients(length, 1)
+End Function
+
+Public Function HammingWindow(length As Integer) As Array Of Double
+    Return FFTWindowCoefficients(length, 2)
+End Function
+
+Public Function BlackmanWindow(length As Integer) As Array Of Double
+    Return FFTWindowCoefficients(length, 3)
+End Function
+
+''' Multiply samples by weights into a new array; neither input is modified.
+Public Function ApplyFFTWindow(samples As Array Of Double, weights As Array Of Double) As Array Of Double
+    If Array.Count(samples) <> Array.Count(weights) Then Throw New InvalidArgumentException("Window and sample lengths must match")
+    If Array.Count(samples) > 1048576 Then Throw New InvalidArgumentException("Window input exceeds 1048576 samples")
+    Dim outputData() As Double
+    For i As Integer = 0 To Array.Count(samples) - 1
+        Array.Append(outputData, samples(i) * weights(i))
+    Next
+    Return outputData
+End Function
