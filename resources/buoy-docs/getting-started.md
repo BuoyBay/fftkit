@@ -17,7 +17,7 @@ Place the sealed `fftkit-0.1.0.buipkg` archive in your project's `packages/` dir
 
 Choose a power-of-two sample count. Use `ForwardFFT` for real samples or `TransformFFT` for separate real and imaginary arrays. An inverse transform sets the third argument to true and divides by the transform length. Windowing and padding are explicit steps rather than hidden normalization.
 
-```buoy
+```basic
 Import fftkit
 
 Sub Main()

@@ -36,5 +36,4 @@ Transform sizes must be powers of two from 1 through 1,048,576, and the real and
 - [Getting started](getting-started.md)
 - [API reference](api.md)
 
-
 [Full typed API: properties, parameters, defaults, and returns](typed-api.md)

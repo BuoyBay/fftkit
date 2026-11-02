@@ -1,7 +1,7 @@
 # FFTKit 0.1.0
 
 Pure Buoy radix-2 complex FFTs and symmetric spectral windows, inspired by
-[Roger Meier's FFT Suite](https://opensource.the-meiers.org/). Import `fftkit`.
+[Roger Meier's FFT Suite](https://opensource.the-meiers.org/). `Import fftkit`.
 No Complex Utilities, native FFT library or plotting dependency is required.
 
 ## API
@@ -38,20 +38,8 @@ The iterative in-memory FFT uses O(N log N) work and O(N) additional storage.
 It allocates fresh real/imaginary outputs, avoiding recursive subarray copies.
 Returned arrays are mutable, not immutable cached spectra.
 
-## Build and verify
+## Package scope
 
-
-Run from the repository root. The runner seals a fresh package into a temporary
-consumer project, checks all three persisted `.bui` files on six desktop targets,
-executes tests and the console demo on Linux, and generates a separately checked
-Python direct-DFT oracle. `BUOY` and `BPM_PACKAGER` select the compiler and sealing
-command. The installed wrapper requires `/usr/bin/buoy` for `pkg` by default.
-
-Tests cover direct DFT comparisons, inverse roundtrips, Parseval energy, impulse
-bins, aliased inputs, defensive copies, symmetric windows, singleton windows and
-invalid bounds. No GUI or network service is involved.
-
-Console example (not included in this repository) and
-[original API comparison](../PROVENANCE.md).
-
-Test suites and fixtures are maintainer-local and are not part of this public repository.
+The transform and window functions are source-only and require no GUI or network
+service. See the [source and parity notes](../PROVENANCE.md) for the scope of the
+independent implementation and original API comparison.

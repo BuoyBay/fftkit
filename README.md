@@ -1,7 +1,7 @@
 # Radix-2 FFTs and spectral window functions
 
-Pure Buoy radix-2 complex FFTs and symmetric spectral windows, inspired by
-[Roger Meier's FFT Suite](https://opensource.the-meiers.org/). Import `fftkit`.
+Source-only radix-2 complex FFTs and symmetric spectral windows, inspired by
+[Roger Meier's FFT Suite](https://opensource.the-meiers.org/). `Import fftkit`.
 No Complex Utilities, native FFT library or plotting dependency is required.
 
 ## Install
@@ -17,7 +17,7 @@ consumer project for reproducible installs.
 
 ## Example
 
-```buoy
+```basic
 Import fftkit
 
 Sub Main()
@@ -51,7 +51,6 @@ On your own machine, install Buoy and run:
 buoy ai init --both
 ```
 
-The generated agent files and editor settings stay local and are ignored by Git.
 
 ## Contributing
 

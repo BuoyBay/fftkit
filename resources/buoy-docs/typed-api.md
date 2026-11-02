@@ -26,8 +26,6 @@ Separate real/imaginary transform outputs, owned by the caller.
 | `Real` | `Array Of Double` | No | No | — | — |
 | `Imaginary` | `Array Of Double` | No | No | — | — |
 
-## FFTKit functions
-
 ### IsFFTSize
 
 `Public Function IsFFTSize(length As Integer) As Boolean`
