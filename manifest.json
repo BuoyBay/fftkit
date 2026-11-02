@@ -1,1 +1,1 @@
-{"schema":1,"name":"fftkit","version":"0.1.0","description":"Bounded radix-2 FFTs and symmetric spectral window functions"}
+{"schema":1,"name":"fftkit","version":"0.1.0","description":"Radix-2 FFTs and spectral window functions"}
