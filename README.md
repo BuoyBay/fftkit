@@ -1,4 +1,4 @@
-# Radix-2 FFTs and spectral window functions
+# Radix-2 FFTs and spectral windows
 
 Source-only radix-2 complex FFTs and symmetric spectral windows, inspired by
 [Roger Meier's FFT Suite](https://opensource.the-meiers.org/). `Import fftkit`.
